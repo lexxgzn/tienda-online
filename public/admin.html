@@ -1,0 +1,671 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Admin — Café Xolchiltepec</title>
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{
+      --cafe:#3d1f0d;--cafe2:#5c2e10;--cream:#f5e6c8;--cream2:#fdf6e3;
+      --gold:#c8922a;--gold2:#e8b84b;--text:#2b1a0e;--muted:#7a5c3e;
+      --border:#dbc99a;--green:#2e6b3e;--red:#b83232;--blue:#1a5fa8;
+      --surface:#fff;--bg:#f7f0e4;
+      --radius:10px;--shadow:0 2px 16px rgba(61,31,13,.1);--tr:.2s ease;
+    }
+    body{font-family:-apple-system,"Segoe UI",system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+
+    /* LOGIN */
+    .login-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;background:linear-gradient(135deg,var(--cafe),var(--cafe2))}
+    .login-box{background:#fff;border-radius:16px;padding:40px;width:100%;max-width:380px;box-shadow:0 20px 60px rgba(0,0,0,.3)}
+    .login-logo{text-align:center;margin-bottom:28px}
+    .login-logo .icon{font-size:2.5rem;margin-bottom:8px}
+    .login-logo h1{font-size:1.3rem;font-weight:900;color:var(--cafe)}
+    .login-logo p{font-size:.82rem;color:var(--muted)}
+    .form-group{margin-bottom:16px}
+    .form-group label{display:block;font-size:.78rem;font-weight:700;color:var(--muted);margin-bottom:6px;text-transform:uppercase;letter-spacing:.3px}
+    .form-group input,.form-group textarea,.form-group select{width:100%;background:var(--cream2);border:1.5px solid var(--border);color:var(--text);border-radius:9px;padding:10px 13px;font-size:.9rem;font-family:inherit;transition:border-color var(--tr),box-shadow var(--tr)}
+    .form-group input:focus,.form-group textarea:focus,.form-group select:focus{outline:none;border-color:var(--gold);box-shadow:0 0 0 3px rgba(200,146,42,.15)}
+    .form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    .btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;border:none;border-radius:9px;cursor:pointer;font-size:.87rem;font-weight:700;padding:10px 20px;transition:all var(--tr);font-family:inherit}
+    .btn:active{transform:scale(.96)}
+    .btn-cafe{background:var(--cafe);color:var(--cream)}
+    .btn-cafe:hover{background:var(--cafe2)}
+    .btn-gold{background:var(--gold);color:var(--cafe)}
+    .btn-gold:hover{background:var(--gold2)}
+    .btn-ghost{background:var(--cream2);color:var(--text);border:1px solid var(--border)}
+    .btn-ghost:hover{border-color:var(--cafe)}
+    .btn-red{background:var(--red);color:#fff}
+    .btn-red:hover{background:#9b2020}
+    .btn-green{background:var(--green);color:#fff}
+    .btn-green:hover{background:#235230}
+    .btn-sm{padding:6px 13px;font-size:.8rem;border-radius:7px}
+    .btn-full{width:100%}
+    .err{color:var(--red);font-size:.83rem;margin-top:8px;text-align:center}
+
+    /* LAYOUT */
+    .admin-layout{display:grid;grid-template-columns:220px 1fr;min-height:100vh}
+    .sidebar{background:var(--cafe);padding:20px 0;display:flex;flex-direction:column}
+    .sidebar-logo{padding:0 18px 20px;border-bottom:1px solid rgba(255,255,255,.1);margin-bottom:14px}
+    .sidebar-logo .icon{font-size:1.5rem}
+    .sidebar-logo h2{color:var(--cream);font-size:.95rem;font-weight:800;margin-top:4px}
+    .sidebar-logo small{color:var(--gold2);font-size:.7rem;display:block}
+    .nav-item{display:flex;align-items:center;gap:10px;padding:10px 18px;color:rgba(245,230,200,.7);cursor:pointer;transition:all var(--tr);font-size:.88rem;font-weight:600;text-decoration:none;border:none;background:none;width:100%;text-align:left}
+    .nav-item:hover{background:rgba(255,255,255,.08);color:var(--cream)}
+    .nav-item.active{background:var(--gold);color:var(--cafe)}
+    .nav-item .icon{font-size:1rem;width:20px;text-align:center}
+    .sidebar-footer{margin-top:auto;padding:18px;border-top:1px solid rgba(255,255,255,.1)}
+    .main-content{padding:28px;overflow-y:auto}
+    .page{display:none}
+    .page.active{display:block}
+
+    /* HEADER */
+    .content-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:28px;flex-wrap:wrap;gap:12px}
+    .content-header h1{font-size:1.3rem;font-weight:900;color:var(--cafe)}
+    .content-header p{font-size:.83rem;color:var(--muted);margin-top:2px}
+
+    /* CARDS STATS */
+    .stats-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:16px;margin-bottom:28px}
+    .stat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px}
+    .stat-card .label{font-size:.75rem;font-weight:700;text-transform:uppercase;color:var(--muted);letter-spacing:.4px}
+    .stat-card .value{font-size:2rem;font-weight:900;color:var(--cafe);margin:6px 0 2px}
+    .stat-card .sub{font-size:.78rem;color:var(--muted)}
+    .stat-card.gold .value{color:var(--gold)}
+    .stat-card.green .value{color:var(--green)}
+
+    /* TABLE */
+    .table-wrap{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-bottom:24px}
+    .table-head{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+    .table-head h3{font-size:.95rem;font-weight:800;color:var(--cafe)}
+    table{width:100%;border-collapse:collapse;font-size:.85rem}
+    th{padding:10px 16px;text-align:left;font-size:.75rem;font-weight:700;text-transform:uppercase;color:var(--muted);letter-spacing:.3px;border-bottom:1px solid var(--border);background:var(--cream2)}
+    td{padding:12px 16px;border-bottom:1px solid var(--border);color:var(--text);vertical-align:middle}
+    tr:last-child td{border-bottom:none}
+    tr:hover td{background:var(--cream2)}
+    .td-img{width:44px;height:44px;object-fit:cover;border-radius:6px;background:var(--cream)}
+    .badge-estado{display:inline-flex;padding:3px 10px;border-radius:99px;font-size:.72rem;font-weight:700}
+    .badge-pendiente{background:rgba(200,146,42,.15);color:var(--gold)}
+    .badge-confirmado{background:rgba(26,95,168,.15);color:var(--blue)}
+    .badge-enviado{background:rgba(61,31,13,.1);color:var(--cafe)}
+    .badge-entregado{background:rgba(46,107,62,.15);color:var(--green)}
+    .badge-cancelado{background:rgba(184,50,50,.12);color:var(--red)}
+    .td-actions{display:flex;gap:6px;align-items:center}
+    .search-input{padding:8px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:.85rem;font-family:inherit;background:var(--cream2);color:var(--text);width:200px;outline:none;transition:border-color var(--tr)}
+    .search-input:focus{border-color:var(--gold)}
+
+    /* LOG */
+    .log-item{display:flex;align-items:flex-start;gap:12px;padding:12px 0;border-bottom:1px solid var(--border)}
+    .log-item:last-child{border-bottom:none}
+    .log-accion{display:inline-block;padding:2px 8px;border-radius:5px;font-size:.7rem;font-weight:700;text-transform:uppercase;white-space:nowrap}
+    .log-CREAR{background:rgba(46,107,62,.15);color:var(--green)}
+    .log-EDITAR{background:rgba(26,95,168,.12);color:var(--blue)}
+    .log-ELIMINAR{background:rgba(184,50,50,.12);color:var(--red)}
+    .log-STOCK{background:rgba(200,146,42,.15);color:var(--gold)}
+    .log-detail{font-size:.82rem;color:var(--muted);margin-top:2px}
+    .log-time{font-size:.72rem;color:var(--border);white-space:nowrap;margin-left:auto}
+
+    /* MODAL */
+    .modal-backdrop{position:fixed;inset:0;background:rgba(43,26,14,.6);backdrop-filter:blur(4px);z-index:300;display:none;align-items:center;justify-content:center;padding:20px}
+    .modal-backdrop.open{display:flex}
+    .modal{background:#fff;border:1px solid var(--border);border-radius:14px;width:100%;max-width:520px;max-height:90vh;overflow-y:auto;box-shadow:0 24px 60px rgba(43,26,14,.3);animation:fadeUp .2s ease}
+    @keyframes fadeUp{from{transform:translateY(16px);opacity:0}to{transform:translateY(0);opacity:1}}
+    .modal-header{padding:18px 22px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}
+    .modal-header h2{font-size:.95rem;font-weight:800;color:var(--cafe)}
+    .modal-body{padding:22px}
+    .modal-footer{padding:14px 22px;border-top:1px solid var(--border);display:flex;gap:10px;justify-content:flex-end}
+    .close-btn{width:30px;height:30px;border-radius:7px;background:var(--cream2);border:1px solid var(--border);color:var(--muted);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:.9rem;transition:all var(--tr)}
+    .close-btn:hover{border-color:var(--cafe);color:var(--cafe)}
+
+    /* PREVIEW IMG */
+    .img-preview{width:100%;height:140px;object-fit:cover;border-radius:8px;border:1px solid var(--border);margin-bottom:8px;background:var(--cream)}
+    .img-preview[src=""],
+    .img-preview:not([src]){display:none}
+
+    /* TOAST */
+    .toast-container{position:fixed;bottom:24px;right:24px;z-index:500;display:flex;flex-direction:column;gap:8px}
+    .toast{background:#fff;border:1px solid var(--border);color:var(--text);padding:11px 16px;border-radius:10px;font-size:.85rem;font-weight:600;display:flex;align-items:center;gap:9px;box-shadow:var(--shadow);animation:toastIn .25s ease;max-width:280px}
+    .toast.success{border-color:rgba(46,107,62,.4);background:rgba(46,107,62,.07);color:var(--green)}
+    .toast.error{border-color:rgba(184,50,50,.4);background:rgba(184,50,50,.07);color:var(--red)}
+    @keyframes toastIn{from{transform:translateX(24px);opacity:0}to{transform:translateX(0);opacity:1}}
+
+    @media(max-width:768px){
+      .admin-layout{grid-template-columns:1fr}
+      .sidebar{display:none}
+      .form-row{grid-template-columns:1fr}
+    }
+  </style>
+</head>
+<body>
+
+<!-- ========== LOGIN ========== -->
+<div id="loginPage" class="login-wrap">
+  <div class="login-box">
+    <div class="login-logo">
+      <div class="icon">☕</div>
+      <h1>Café Xolchiltepec</h1>
+      <p>Panel de Administración</p>
+    </div>
+    <div class="form-group">
+      <label>Contraseña</label>
+      <input id="loginPass" type="password" placeholder="Ingresa la contraseña" onkeyup="if(event.key==='Enter')login()"/>
+    </div>
+    <button class="btn btn-cafe btn-full" onclick="login()">Entrar al panel</button>
+    <p class="err" id="loginErr"></p>
+  </div>
+</div>
+
+<!-- ========== ADMIN PANEL ========== -->
+<div id="adminPanel" class="admin-layout" style="display:none">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="icon">☕</div>
+      <h2>Xolchiltepec</h2>
+      <small>Panel Admin</small>
+    </div>
+    <button class="nav-item active" onclick="showPage('dashboard',this)"><span class="icon">📊</span> Dashboard</button>
+    <button class="nav-item" onclick="showPage('productos',this)"><span class="icon">☕</span> Productos</button>
+    <button class="nav-item" onclick="showPage('servicios',this)"><span class="icon">⚙️</span> Servicios</button>
+    <button class="nav-item" onclick="showPage('pedidos',this)"><span class="icon">📦</span> Pedidos</button>
+    <button class="nav-item" onclick="showPage('inventario',this)"><span class="icon">📋</span> Inventario</button>
+    <button class="nav-item" onclick="showPage('logs',this)"><span class="icon">🔍</span> Actividad</button>
+    <div class="sidebar-footer">
+      <button class="nav-item" onclick="logout()" style="color:rgba(245,230,200,.5)"><span class="icon">🚪</span> Salir</button>
+      <a class="nav-item" href="/" style="margin-top:4px"><span class="icon">🌐</span> Ver tienda</a>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main-content">
+
+    <!-- DASHBOARD -->
+    <div class="page active" id="page-dashboard">
+      <div class="content-header">
+        <div><h1>Dashboard</h1><p>Resumen general de tu tienda</p></div>
+        <button class="btn btn-ghost btn-sm" onclick="loadDashboard()">↻ Actualizar</button>
+      </div>
+      <div class="stats-grid" id="statsGrid">
+        <div class="stat-card"><div class="label">Productos activos</div><div class="value" id="st-prods">—</div></div>
+        <div class="stat-card gold"><div class="label">Ingresos totales</div><div class="value" id="st-ingresos">—</div><div class="sub">de todos los pedidos</div></div>
+        <div class="stat-card"><div class="label">Pedidos</div><div class="value" id="st-pedidos">—</div></div>
+        <div class="stat-card green"><div class="label">Servicios activos</div><div class="value" id="st-svcs">—</div></div>
+      </div>
+      <div class="table-wrap">
+        <div class="table-head"><h3>🔔 Actividad reciente</h3></div>
+        <div style="padding:16px 20px" id="logsPreview">Cargando...</div>
+      </div>
+    </div>
+
+    <!-- PRODUCTOS -->
+    <div class="page" id="page-productos">
+      <div class="content-header">
+        <div><h1>Productos</h1><p>Gestiona el catálogo de café</p></div>
+        <button class="btn btn-cafe" onclick="abrirModalProducto()">+ Nuevo producto</button>
+      </div>
+      <div class="table-wrap">
+        <div class="table-head">
+          <h3>Catálogo</h3>
+          <input class="search-input" id="searchProd" placeholder="Buscar..." oninput="filtrarTabla('tbProductos',this.value,[1,2])"/>
+        </div>
+        <table>
+          <thead><tr><th>Img</th><th>Nombre</th><th>Precio</th><th>Stock</th><th>Categoría</th><th>Estado</th><th>Acciones</th></tr></thead>
+          <tbody id="tbProductos"><tr><td colspan="7" style="text-align:center;padding:30px;color:var(--muted)">Cargando...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- SERVICIOS -->
+    <div class="page" id="page-servicios">
+      <div class="content-header">
+        <div><h1>Servicios</h1><p>Gestiona los servicios de procesamiento</p></div>
+        <button class="btn btn-cafe" onclick="abrirModalServicio()">+ Nuevo servicio</button>
+      </div>
+      <div class="table-wrap">
+        <div class="table-head"><h3>Lista de servicios</h3></div>
+        <table>
+          <thead><tr><th>Img</th><th>Nombre</th><th>Descripción</th><th>Precio base</th><th>Estado</th><th>Acciones</th></tr></thead>
+          <tbody id="tbServicios"><tr><td colspan="6" style="text-align:center;padding:30px;color:var(--muted)">Cargando...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- PEDIDOS -->
+    <div class="page" id="page-pedidos">
+      <div class="content-header">
+        <div><h1>Pedidos</h1><p>Historial y gestión de órdenes</p></div>
+        <button class="btn btn-ghost btn-sm" onclick="loadPedidos()">↻ Actualizar</button>
+      </div>
+      <div class="table-wrap">
+        <div class="table-head">
+          <h3>Todos los pedidos</h3>
+          <input class="search-input" id="searchPed" placeholder="Buscar cliente..." oninput="filtrarTabla('tbPedidos',this.value,[1,2])"/>
+        </div>
+        <table>
+          <thead><tr><th>#</th><th>Cliente</th><th>Email</th><th>Total</th><th>Estado</th><th>Fecha</th><th>Acción</th></tr></thead>
+          <tbody id="tbPedidos"><tr><td colspan="7" style="text-align:center;padding:30px;color:var(--muted)">Cargando...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- INVENTARIO -->
+    <div class="page" id="page-inventario">
+      <div class="content-header">
+        <div><h1>Inventario</h1><p>Movimientos y ajustes de stock</p></div>
+        <button class="btn btn-cafe" onclick="abrirModalStock()">+ Ajustar stock</button>
+      </div>
+      <div class="table-wrap">
+        <div class="table-head"><h3>Historial de movimientos</h3></div>
+        <table>
+          <thead><tr><th>Producto</th><th>Tipo</th><th>Cantidad</th><th>Motivo</th><th>Fecha</th></tr></thead>
+          <tbody id="tbMovimientos"><tr><td colspan="5" style="text-align:center;padding:30px;color:var(--muted)">Cargando...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- LOGS -->
+    <div class="page" id="page-logs">
+      <div class="content-header">
+        <div><h1>Actividad</h1><p>Registro de todas las acciones realizadas</p></div>
+        <button class="btn btn-ghost btn-sm" onclick="loadLogs()">↻ Actualizar</button>
+      </div>
+      <div class="table-wrap">
+        <div style="padding:16px 20px" id="logsContent">Cargando...</div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- MODAL PRODUCTO -->
+<div class="modal-backdrop" id="modalProducto">
+  <div class="modal">
+    <div class="modal-header"><h2 id="mpTitulo">Producto</h2><button class="close-btn" onclick="cerrarModal('modalProducto')">✕</button></div>
+    <div class="modal-body">
+      <input type="hidden" id="mpId"/>
+      <img id="mpImgPreview" class="img-preview" src="" alt=""/>
+      <div class="form-group"><label>Imagen URL</label><input id="mpImgUrl" type="url" placeholder="https://..." oninput="previewImg(this,'mpImgPreview')"/></div>
+      <div class="form-group"><label>Nombre *</label><input id="mpNombre" type="text" placeholder="Café Molido 1 kg"/></div>
+      <div class="form-group"><label>Descripción</label><textarea id="mpDesc" rows="3" placeholder="Descripción del producto..."></textarea></div>
+      <div class="form-row">
+        <div class="form-group"><label>Precio ($) *</label><input id="mpPrecio" type="number" step="0.01" min="0" placeholder="0.00"/></div>
+        <div class="form-group"><label>Stock inicial</label><input id="mpStock" type="number" min="0" placeholder="0"/></div>
+      </div>
+      <div class="form-group"><label>Categoría</label>
+        <select id="mpCat"><option value="">Sin categoría</option></select>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="cerrarModal('modalProducto')">Cancelar</button>
+      <button class="btn btn-cafe" onclick="guardarProducto()">Guardar producto</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL SERVICIO -->
+<div class="modal-backdrop" id="modalServicio">
+  <div class="modal">
+    <div class="modal-header"><h2 id="msTitulo">Servicio</h2><button class="close-btn" onclick="cerrarModal('modalServicio')">✕</button></div>
+    <div class="modal-body">
+      <input type="hidden" id="msId"/>
+      <img id="msImgPreview" class="img-preview" src="" alt=""/>
+      <div class="form-group"><label>Imagen URL</label><input id="msImgUrl" type="url" placeholder="https://..." oninput="previewImg(this,'msImgPreview')"/></div>
+      <div class="form-group"><label>Nombre *</label><input id="msNombre" type="text" placeholder="Despulpe"/></div>
+      <div class="form-group"><label>Descripción</label><textarea id="msDesc" rows="4" placeholder="Descripción del servicio..."></textarea></div>
+      <div class="form-group"><label>Precio base ($/kg)</label><input id="msPrecio" type="number" step="0.01" min="0" placeholder="0.00"/></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="cerrarModal('modalServicio')">Cancelar</button>
+      <button class="btn btn-cafe" onclick="guardarServicio()">Guardar servicio</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL STOCK -->
+<div class="modal-backdrop" id="modalStock">
+  <div class="modal">
+    <div class="modal-header"><h2>Ajustar Stock</h2><button class="close-btn" onclick="cerrarModal('modalStock')">✕</button></div>
+    <div class="modal-body">
+      <div class="form-group"><label>Producto</label>
+        <select id="skProd"></select>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Tipo</label>
+          <select id="skTipo">
+            <option value="entrada">Entrada (sumar)</option>
+            <option value="salida">Salida (restar)</option>
+            <option value="ajuste">Ajuste</option>
+          </select>
+        </div>
+        <div class="form-group"><label>Cantidad</label><input id="skCantidad" type="number" min="1" placeholder="0"/></div>
+      </div>
+      <div class="form-group"><label>Motivo</label><input id="skMotivo" type="text" placeholder="Ej: compra de proveedor, merma..."/></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="cerrarModal('modalStock')">Cancelar</button>
+      <button class="btn btn-cafe" onclick="guardarStock()">Confirmar ajuste</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast-container" id="toastContainer"></div>
+
+<script>
+const API = '/api';
+let TOKEN = localStorage.getItem('admin_token_xolchi') || '';
+let categorias = [], productos_list = [];
+
+// ── Auth ────────────────────────────────────────────────────
+async function login() {
+  const pass = document.getElementById('loginPass').value;
+  try {
+    const r = await apiFetch('/admin/login', {method:'POST', body:JSON.stringify({password:pass})});
+    TOKEN = r.token;
+    localStorage.setItem('admin_token_xolchi', TOKEN);
+    showAdmin();
+  } catch(e) {
+    document.getElementById('loginErr').textContent = 'Contraseña incorrecta';
+  }
+}
+function logout() {
+  TOKEN=''; localStorage.removeItem('admin_token_xolchi');
+  document.getElementById('adminPanel').style.display='none';
+  document.getElementById('loginPage').style.display='flex';
+}
+function showAdmin() {
+  document.getElementById('loginPage').style.display='none';
+  document.getElementById('adminPanel').style.display='grid';
+  loadDashboard(); loadProductos(); loadServicios(); loadPedidos(); loadMovimientos(); loadLogs();
+  cargarCategorias();
+}
+
+// Si ya tiene token, intentar mostrar el panel
+if (TOKEN) showAdmin();
+
+// ── API ─────────────────────────────────────────────────────
+async function apiFetch(url, opts={}) {
+  const headers = {'Content-Type':'application/json'};
+  if (TOKEN) headers['Authorization'] = `Bearer ${TOKEN}`;
+  const res = await fetch(API+url, {headers, ...opts});
+  if (res.status===401) { logout(); throw new Error('No autorizado'); }
+  if (!res.ok) { const e=await res.json().catch(()=>({})); throw new Error(e.error||`Error ${res.status}`); }
+  return res.json();
+}
+
+// ── Nav ─────────────────────────────────────────────────────
+function showPage(name, btn) {
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(b=>b.classList.remove('active'));
+  document.getElementById(`page-${name}`).classList.add('active');
+  btn.classList.add('active');
+}
+
+// ── Dashboard ───────────────────────────────────────────────
+async function loadDashboard() {
+  try {
+    const d = await apiFetch('/admin/dashboard');
+    document.getElementById('st-prods').textContent    = d.productos.total;
+    document.getElementById('st-ingresos').textContent = `$${fmt(d.pedidos.ingresos)}`;
+    document.getElementById('st-pedidos').textContent  = d.pedidos.total;
+    document.getElementById('st-svcs').textContent     = d.servicios.total;
+    renderLogs(d.logs_recientes, 'logsPreview');
+  } catch(e) { toast('Error cargando dashboard','error'); }
+}
+
+// ── Productos ───────────────────────────────────────────────
+async function loadProductos() {
+  try {
+    const prods = await apiFetch('/productos?activo=1');
+    productos_list = prods;
+    const tbody = document.getElementById('tbProductos');
+    if (!prods.length) { tbody.innerHTML='<tr><td colspan="7" style="text-align:center;padding:30px;color:var(--muted)">Sin productos</td></tr>'; return; }
+    tbody.innerHTML = prods.map(p=>`
+      <tr data-search="${esc(p.nombre)} ${esc(p.categoria||'')}">
+        <td><img class="td-img" src="${p.imagen_url||'https://placehold.co/44x44/3d1f0d/f5e6c8?text=☕'}" alt="${esc(p.nombre)}"/></td>
+        <td><strong>${esc(p.nombre)}</strong></td>
+        <td>$${fmt(p.precio)}</td>
+        <td><strong style="color:${p.stock<=10?'var(--red)':'var(--green)'}">${p.stock}</strong></td>
+        <td>${esc(p.categoria||'—')}</td>
+        <td><span class="${p.activo?'badge-estado badge-confirmado':'badge-estado badge-cancelado'}">${p.activo?'Activo':'Inactivo'}</span></td>
+        <td><div class="td-actions">
+          <button class="btn btn-ghost btn-sm" onclick="editarProducto(${p.id})">✏️ Editar</button>
+          <button class="btn btn-red btn-sm" onclick="eliminarProducto(${p.id},'${esc(p.nombre)}')">🗑</button>
+        </div></td>
+      </tr>`).join('');
+  } catch(e) { toast('Error cargando productos','error'); }
+}
+
+async function cargarCategorias() {
+  try {
+    categorias = await apiFetch('/categorias');
+    const sel = document.getElementById('mpCat');
+    sel.innerHTML = '<option value="">Sin categoría</option>' +
+      categorias.map(c=>`<option value="${c.id}">${esc(c.nombre)}</option>`).join('');
+  } catch(e){}
+}
+
+function abrirModalProducto(prod=null) {
+  document.getElementById('mpId').value       = prod?.id || '';
+  document.getElementById('mpNombre').value   = prod?.nombre || '';
+  document.getElementById('mpDesc').value     = prod?.descripcion || '';
+  document.getElementById('mpPrecio').value   = prod?.precio || '';
+  document.getElementById('mpStock').value    = prod?.stock || 0;
+  document.getElementById('mpImgUrl').value   = prod?.imagen_url || '';
+  document.getElementById('mpImgPreview').src = prod?.imagen_url || '';
+  document.getElementById('mpTitulo').textContent = prod ? 'Editar Producto' : 'Nuevo Producto';
+  if (prod?.categoria_id) document.getElementById('mpCat').value = prod.categoria_id;
+  abrirModal('modalProducto');
+}
+
+async function editarProducto(id) {
+  const p = productos_list.find(x=>x.id===id);
+  if (p) abrirModalProducto(p);
+}
+
+async function guardarProducto() {
+  const id   = document.getElementById('mpId').value;
+  const body = {
+    nombre:      document.getElementById('mpNombre').value.trim(),
+    descripcion: document.getElementById('mpDesc').value.trim(),
+    precio:      parseFloat(document.getElementById('mpPrecio').value),
+    stock:       parseInt(document.getElementById('mpStock').value),
+    imagen_url:  document.getElementById('mpImgUrl').value.trim() || null,
+    categoria_id: document.getElementById('mpCat').value || null
+  };
+  if (!body.nombre || isNaN(body.precio)) { toast('Nombre y precio son requeridos','error'); return; }
+  try {
+    if (id) await apiFetch(`/admin/productos/${id}`, {method:'PUT',  body:JSON.stringify(body)});
+    else    await apiFetch('/admin/productos',        {method:'POST', body:JSON.stringify(body)});
+    toast(id?'Producto actualizado ✓':'Producto creado ✓','success');
+    cerrarModal('modalProducto'); loadProductos();
+  } catch(e) { toast(`Error: ${e.message}`,'error'); }
+}
+
+async function eliminarProducto(id, nombre) {
+  if (!confirm(`¿Desactivar "${nombre}"?`)) return;
+  try {
+    await apiFetch(`/admin/productos/${id}`, {method:'DELETE'});
+    toast('Producto desactivado','success'); loadProductos();
+  } catch(e) { toast(`Error: ${e.message}`,'error'); }
+}
+
+// ── Servicios ───────────────────────────────────────────────
+async function loadServicios() {
+  try {
+    const svcs = await apiFetch('/servicios');
+    const tbody = document.getElementById('tbServicios');
+    if (!svcs.length) { tbody.innerHTML='<tr><td colspan="6" style="text-align:center;padding:30px;color:var(--muted)">Sin servicios</td></tr>'; return; }
+    tbody.innerHTML = svcs.map(s=>`
+      <tr>
+        <td><img class="td-img" src="${s.imagen_url||'https://placehold.co/44x44/3d1f0d/f5e6c8?text=⚙️'}" alt="${esc(s.nombre)}"/></td>
+        <td><strong>${esc(s.nombre)}</strong></td>
+        <td style="max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--muted);font-size:.8rem">${esc(s.descripcion||'')}</td>
+        <td>$${fmt(s.precio_base)}/kg</td>
+        <td><span class="${s.activo?'badge-estado badge-confirmado':'badge-estado badge-cancelado'}">${s.activo?'Activo':'Inactivo'}</span></td>
+        <td><div class="td-actions">
+          <button class="btn btn-ghost btn-sm" onclick="editarServicio(${s.id})">✏️ Editar</button>
+          <button class="btn btn-red btn-sm" onclick="eliminarServicio(${s.id},'${esc(s.nombre)}')">🗑</button>
+        </div></td>
+      </tr>`).join('');
+  } catch(e) { toast('Error cargando servicios','error'); }
+}
+let servicios_list = [];
+async function editarServicio(id) {
+  try {
+    if (!servicios_list.length) servicios_list = await apiFetch('/servicios');
+    const s = servicios_list.find(x=>x.id===id); if(!s) return;
+    document.getElementById('msId').value       = s.id;
+    document.getElementById('msNombre').value   = s.nombre;
+    document.getElementById('msDesc').value     = s.descripcion||'';
+    document.getElementById('msPrecio').value   = s.precio_base;
+    document.getElementById('msImgUrl').value   = s.imagen_url||'';
+    document.getElementById('msImgPreview').src = s.imagen_url||'';
+    document.getElementById('msTitulo').textContent = 'Editar Servicio';
+    abrirModal('modalServicio');
+  } catch(e){}
+}
+function abrirModalServicio() {
+  ['msId','msNombre','msDesc','msPrecio','msImgUrl'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('msImgPreview').src='';
+  document.getElementById('msTitulo').textContent='Nuevo Servicio';
+  abrirModal('modalServicio');
+}
+async function guardarServicio() {
+  const id   = document.getElementById('msId').value;
+  const body = {
+    nombre:      document.getElementById('msNombre').value.trim(),
+    descripcion: document.getElementById('msDesc').value.trim(),
+    precio_base: parseFloat(document.getElementById('msPrecio').value)||0,
+    imagen_url:  document.getElementById('msImgUrl').value.trim()||null
+  };
+  if (!body.nombre) { toast('Nombre es requerido','error'); return; }
+  try {
+    if (id) await apiFetch(`/servicios/${id}`, {method:'PUT',  body:JSON.stringify(body)});
+    else    await apiFetch('/servicios',        {method:'POST', body:JSON.stringify(body)});
+    toast(id?'Servicio actualizado ✓':'Servicio creado ✓','success');
+    cerrarModal('modalServicio'); loadServicios(); servicios_list=[];
+  } catch(e) { toast(`Error: ${e.message}`,'error'); }
+}
+async function eliminarServicio(id, nombre) {
+  if (!confirm(`¿Desactivar "${nombre}"?`)) return;
+  try {
+    await apiFetch(`/servicios/${id}`, {method:'DELETE'});
+    toast('Servicio desactivado','success'); loadServicios(); servicios_list=[];
+  } catch(e) { toast(`Error: ${e.message}`,'error'); }
+}
+
+// ── Pedidos ─────────────────────────────────────────────────
+async function loadPedidos() {
+  try {
+    const peds = await apiFetch('/admin/pedidos');
+    const tbody = document.getElementById('tbPedidos');
+    if (!peds.length) { tbody.innerHTML='<tr><td colspan="7" style="text-align:center;padding:30px;color:var(--muted)">Sin pedidos</td></tr>'; return; }
+    tbody.innerHTML = peds.map(p=>`
+      <tr data-search="${esc(p.cliente_nombre)} ${esc(p.cliente_email)}">
+        <td><strong>#${p.id}</strong></td>
+        <td>${esc(p.cliente_nombre)}</td>
+        <td style="color:var(--muted);font-size:.82rem">${esc(p.cliente_email)}</td>
+        <td><strong>$${fmt(p.total)}</strong></td>
+        <td><span class="badge-estado badge-${p.estado}">${p.estado}</span></td>
+        <td style="font-size:.8rem;color:var(--muted)">${new Date(p.creado_en).toLocaleDateString('es-MX')}</td>
+        <td>
+          <select class="search-input" style="width:auto;padding:5px 8px;font-size:.78rem" onchange="cambiarEstado(${p.id},this.value)">
+            ${['pendiente','confirmado','enviado','entregado','cancelado'].map(e=>`<option value="${e}"${e===p.estado?' selected':''}>${e}</option>`).join('')}
+          </select>
+        </td>
+      </tr>`).join('');
+  } catch(e) { toast('Error cargando pedidos','error'); }
+}
+async function cambiarEstado(id, estado) {
+  try {
+    await apiFetch(`/pedidos/${id}/estado`, {method:'PATCH', body:JSON.stringify({estado})});
+    toast(`Estado actualizado: ${estado}`,'success');
+  } catch(e) { toast(`Error: ${e.message}`,'error'); }
+}
+
+// ── Inventario ──────────────────────────────────────────────
+async function loadMovimientos() {
+  try {
+    const movs = await apiFetch('/admin/movimientos');
+    const tbody = document.getElementById('tbMovimientos');
+    if (!movs.length) { tbody.innerHTML='<tr><td colspan="5" style="text-align:center;padding:30px;color:var(--muted)">Sin movimientos</td></tr>'; return; }
+    tbody.innerHTML = movs.map(m=>`
+      <tr>
+        <td>${esc(m.producto_nombre)}</td>
+        <td><span class="badge-estado badge-${m.tipo==='entrada'?'confirmado':m.tipo==='salida'?'cancelado':'enviado'}">${m.tipo}</span></td>
+        <td><strong>${m.tipo==='salida'?'-':'+'} ${m.cantidad}</strong></td>
+        <td style="color:var(--muted);font-size:.82rem">${esc(m.motivo||'—')}</td>
+        <td style="font-size:.78rem;color:var(--muted)">${new Date(m.creado_en).toLocaleString('es-MX')}</td>
+      </tr>`).join('');
+  } catch(e) { toast('Error cargando movimientos','error'); }
+}
+function abrirModalStock() {
+  const sel = document.getElementById('skProd');
+  sel.innerHTML = productos_list.map(p=>`<option value="${p.id}">${esc(p.nombre)} (stock: ${p.stock})</option>`).join('');
+  document.getElementById('skCantidad').value='';
+  document.getElementById('skMotivo').value='';
+  abrirModal('modalStock');
+}
+async function guardarStock() {
+  const prod_id  = document.getElementById('skProd').value;
+  const tipo     = document.getElementById('skTipo').value;
+  const cantidad = parseInt(document.getElementById('skCantidad').value);
+  const motivo   = document.getElementById('skMotivo').value.trim()||'Ajuste manual';
+  if (!cantidad||cantidad<1) { toast('Cantidad inválida','error'); return; }
+  try {
+    await apiFetch(`/admin/productos/${prod_id}/stock`, {method:'POST', body:JSON.stringify({cantidad,tipo,motivo})});
+    toast('Stock actualizado ✓','success');
+    cerrarModal('modalStock'); loadProductos(); loadMovimientos();
+  } catch(e) { toast(`Error: ${e.message}`,'error'); }
+}
+
+// ── Logs ─────────────────────────────────────────────────────
+async function loadLogs() {
+  try {
+    const logs = await apiFetch('/admin/logs');
+    renderLogs(logs, 'logsContent');
+  } catch(e) {}
+}
+function renderLogs(logs, containerId) {
+  const cont = document.getElementById(containerId);
+  if (!logs?.length) { cont.innerHTML='<p style="color:var(--muted);text-align:center;padding:20px">Sin actividad reciente</p>'; return; }
+  cont.innerHTML = logs.map(l=>`
+    <div class="log-item">
+      <span class="log-accion log-${l.accion}">${l.accion}</span>
+      <div>
+        <div style="font-size:.85rem;font-weight:600">${esc(l.entidad)} ${l.entidad_id?`#${l.entidad_id}`:''}</div>
+        <div class="log-detail">${esc(l.detalle||'')}</div>
+      </div>
+      <div class="log-time">${new Date(l.creado_en).toLocaleString('es-MX',{dateStyle:'short',timeStyle:'short'})}</div>
+    </div>`).join('');
+}
+
+// ── Helpers ─────────────────────────────────────────────────
+function abrirModal(id)  { document.getElementById(id).classList.add('open') }
+function cerrarModal(id) { document.getElementById(id).classList.remove('open') }
+
+function previewImg(input, previewId) {
+  const img = document.getElementById(previewId);
+  img.src = input.value;
+  img.style.display = input.value ? 'block' : 'none';
+}
+
+function filtrarTabla(tbodyId, q, cols) {
+  const rows = document.getElementById(tbodyId).querySelectorAll('tr');
+  rows.forEach(r => {
+    const txt = (r.dataset.search||'').toLowerCase();
+    r.style.display = (!q || txt.includes(q.toLowerCase())) ? '' : 'none';
+  });
+}
+
+function toast(msg,type='') {
+  const el=document.createElement('div');
+  el.className=`toast ${type}`;el.textContent=msg;
+  document.getElementById('toastContainer').appendChild(el);
+  setTimeout(()=>el.remove(),3500);
+}
+function fmt(n){return Number(n||0).toFixed(2)}
+function esc(s){const d=document.createElement('div');d.textContent=String(s||'');return d.innerHTML}
+</script>
+</body>
+</html>
