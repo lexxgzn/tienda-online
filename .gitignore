@@ -1,0 +1,5 @@
+node_modules/  
+database/tienda.db  
+.env  
+*.log  
+_gitignore_content.txt 
